@@ -1,5 +1,6 @@
 package com.example.myjournalapp.activities;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -7,8 +8,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.myjournalapp.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -29,14 +28,10 @@ public class ProfileActivity extends AppCompatActivity {
         // Handle toolbar back button
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
-        // Show logged-in user's email
+        // Show username
         txtUsername = findViewById(R.id.txtUsername);
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (user != null) {
-            txtUsername.setText("Logged in as: " + user.getEmail());
-        } else {
-            txtUsername.setText("Not logged in");
-        }
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String username = prefs.getString("username", "Guest");
+        txtUsername.setText("Username: " + username);
     }
 }

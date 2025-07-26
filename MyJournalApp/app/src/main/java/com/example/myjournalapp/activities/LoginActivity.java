@@ -10,15 +10,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myjournalapp.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.myjournalapp.utils.SessionManager;
 
 public class LoginActivity extends AppCompatActivity {
 
     EditText edtUsername, edtPassword;
     Button btnLogin, btnRegister;
 
-    FirebaseAuth firebaseAuth;
+    SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,34 +29,34 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
 
-        firebaseAuth = FirebaseAuth.getInstance();
+        sessionManager = new SessionManager(this);
 
         btnLogin.setOnClickListener(v -> {
-            String email = edtUsername.getText().toString().trim();
-            String password = edtPassword.getText().toString().trim();
+            String inputUsername = edtUsername.getText().toString().trim();
+            String inputPassword = edtPassword.getText().toString().trim();
 
-            if (email.isEmpty() || password.isEmpty()) {
+            if (inputUsername.isEmpty() || inputPassword.isEmpty()) {
                 Toast.makeText(this, "Please enter both fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            firebaseAuth.signInWithEmailAndPassword(email, password)
-                    .addOnSuccessListener(authResult -> {
-                        FirebaseUser user = firebaseAuth.getCurrentUser();
-                        if (user != null) {
-                            // Save user email or UID for profile
-                            SharedPreferences.Editor editor = getSharedPreferences("session", MODE_PRIVATE).edit();
-                            editor.putString("username", user.getEmail()); // or user.getUid()
-                            editor.apply();
+            if (!sessionManager.isUserRegistered(inputUsername)) {
+                Toast.makeText(this, "User not found. Please register first.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-                            Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(this, HomeActivity.class));
-                            finish();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+            if (sessionManager.login(inputUsername, inputPassword)) {
+                // ✅ Save username to SharedPreferences for profile screen
+                SharedPreferences.Editor editor = getSharedPreferences("session", MODE_PRIVATE).edit();
+                editor.putString("username", inputUsername);
+                editor.apply();
+
+                Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, HomeActivity.class));
+                finish();
+            } else {
+                Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+            }
         });
 
         btnRegister.setOnClickListener(v -> {

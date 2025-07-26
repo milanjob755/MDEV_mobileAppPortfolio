@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Required for Android 13+ to show notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,8 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyJournalApp"
-        tools:targetApi="31"
-        android:name=".MyJournalApp" >
+        android:name=".MyJournalApp"
+        tools:targetApi="31">
 
         <!-- Launcher Activity -->
         <activity
@@ -24,7 +29,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Register & Home Activities -->
+        <!-- App Activities -->
         <activity android:name=".activities.RegisterActivity" />
         <activity android:name=".activities.HomeActivity" />
         <activity android:name=".activities.AddNoteActivity" />
@@ -32,9 +37,10 @@
         <activity android:name=".activities.ProfileActivity" />
         <activity android:name=".activities.SettingsActivity" />
 
+        <!-- Reminder Alarm Receiver -->
+        <receiver android:name=".utils.ReminderReceiver" />
 
-
-        <!-- Optional: remove this if MainActivity is not used -->
+        <!-- Optional: Remove if not using -->
         <!-- <activity android:name=".MainActivity" /> -->
 
     </application>

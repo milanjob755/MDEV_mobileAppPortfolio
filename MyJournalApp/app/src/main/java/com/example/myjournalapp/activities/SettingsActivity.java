@@ -11,7 +11,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.myjournalapp.R;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.myjournalapp.utils.SessionManager;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -47,19 +47,24 @@ public class SettingsActivity extends AppCompatActivity {
         );
 
         switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean("dark_mode", isChecked).apply();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("dark_mode", isChecked);
+            editor.apply();
+
             AppCompatDelegate.setDefaultNightMode(
                     isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
             );
         });
 
         switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean("notifications_enabled", isChecked).apply();
-            // TODO: Implement actual notification handling
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("notifications_enabled", isChecked);
+            editor.apply();
+            // Optionally handle actual notification logic
         });
 
         btnLogoutSettings.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
+            new SessionManager(this).logout();
             startActivity(new Intent(SettingsActivity.this, LoginActivity.class));
             finish();
         });

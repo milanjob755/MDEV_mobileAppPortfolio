@@ -1,9 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.MyJournalApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    <!-- Popup Menu Overlay Style for Light Mode -->
+    <style name="ThemeOverlay.MyJournalApp.PopupMenu" parent="ThemeOverlay.Material3">
+        <item name="android:textColor">@color/black</item>
     </style>
 
+
+    <!-- Base Theme for Light Mode -->
+    <style name="Base.Theme.MyJournalApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <!-- You can remove this line if you're using ThemeOverlay instead -->
+        <!-- <item name="popupMenuStyle">@style/PopupMenuStyle</item> -->
+    </style>
+
+    <!-- Actual App Theme -->
     <style name="Theme.MyJournalApp" parent="Base.Theme.MyJournalApp" />
 </resources>

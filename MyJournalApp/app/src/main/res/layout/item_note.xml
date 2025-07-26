@@ -46,5 +46,15 @@
             android:textColor="#888888"
             android:layout_marginTop="6dp" />
 
+        <!-- ✅ NEW: Reminder Status -->
+        <TextView
+            android:id="@+id/txtReminderStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reminder: Not Set"
+            android:textSize="12sp"
+            android:textColor="#00796B"
+            android:layout_marginTop="4dp" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

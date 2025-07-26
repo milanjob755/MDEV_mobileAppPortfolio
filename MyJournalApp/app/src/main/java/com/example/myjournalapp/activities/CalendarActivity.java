@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.CalendarView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -15,10 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myjournalapp.R;
 import com.example.myjournalapp.adapter.NoteAdapter;
 import com.example.myjournalapp.model.Note;
+import com.example.myjournalapp.utils.NoteStorageHelper;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,12 +27,9 @@ public class CalendarActivity extends AppCompatActivity {
     private CalendarView calendarView;
     private RecyclerView recyclerView;
     private NoteAdapter adapter;
-    private ArrayList<Note> allNotes = new ArrayList<>();
-    private ArrayList<Note> filteredNotes = new ArrayList<>();
+    private ArrayList<Note> allNotes;
+    private ArrayList<Note> filteredNotes;
     private Note selectedNote;
-
-    private FirebaseFirestore db;
-    private String userId;
 
     private final ActivityResultLauncher<Intent> editNoteLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -45,19 +39,17 @@ public class CalendarActivity extends AppCompatActivity {
                     String id = result.getData().getStringExtra("id");
 
                     if (id != null && title != null && content != null) {
+                        for (int i = 0; i < allNotes.size(); i++) {
+                            if (allNotes.get(i).getId().equals(id)) {
+                                Note updatedNote = new Note(id, title, content, System.currentTimeMillis());
+                                allNotes.set(i, updatedNote);
+                                break;
+                            }
+                        }
 
-                        Note updatedNote = new Note(id, title, content, System.currentTimeMillis(), false);
-                        db.collection("users")
-                                .document(userId)
-                                .collection("notes")
-                                .document(id)
-                                .set(updatedNote)
-                                .addOnSuccessListener(unused -> {
-                                    Toast.makeText(this, "Note updated", Toast.LENGTH_SHORT).show();
-                                    loadNotesFromFirestore();
-                                })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        // Save and refresh
+                        NoteStorageHelper.saveNotes(this, allNotes);
+                        filterNotesByDate(getSelectedDateKey());
                     }
                 }
             });
@@ -71,8 +63,8 @@ public class CalendarActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerViewByDate);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        db = FirebaseFirestore.getInstance();
-        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        allNotes = NoteStorageHelper.getNotes(this);
+        filteredNotes = new ArrayList<>();
 
         adapter = new NoteAdapter(filteredNotes, new NoteAdapter.NoteClickListener() {
             @Override
@@ -81,7 +73,7 @@ public class CalendarActivity extends AppCompatActivity {
                 Intent intent = new Intent(CalendarActivity.this, AddNoteActivity.class);
                 intent.putExtra("title", selectedNote.getTitle());
                 intent.putExtra("content", selectedNote.getContent());
-                intent.putExtra("id", selectedNote.getId()); // Pass ID for editing
+                intent.putExtra("id", selectedNote.getId()); // important
                 editNoteLauncher.launch(intent);
             }
 
@@ -92,15 +84,13 @@ public class CalendarActivity extends AppCompatActivity {
                         .setTitle("Delete Note")
                         .setMessage("Are you sure you want to delete this note?")
                         .setPositiveButton("Yes", (dialog, which) -> {
-                            db.collection("users")
-                                    .document(userId)
-                                    .collection("notes")
-                                    .document(noteToRemove.getId())
-                                    .delete()
-                                    .addOnSuccessListener(unused -> {
-                                        Toast.makeText(CalendarActivity.this, "Note deleted", Toast.LENGTH_SHORT).show();
-                                        loadNotesFromFirestore();
-                                    });
+                            // Remove from both lists
+                            allNotes.removeIf(n -> n.getId().equals(noteToRemove.getId()));
+                            filteredNotes.remove(position);
+                            adapter.notifyItemRemoved(position);
+
+                            // Save updated notes
+                            NoteStorageHelper.saveNotes(CalendarActivity.this, allNotes);
                         })
                         .setNegativeButton("No", null)
                         .show();
@@ -114,30 +104,12 @@ public class CalendarActivity extends AppCompatActivity {
             filterNotesByDate(selectedDate);
         });
 
-        loadNotesFromFirestore();
+        // Load today's notes
+        filterNotesByDate(getSelectedDateKey());
 
+        // Back toolbar
         MaterialToolbar toolbar = findViewById(R.id.toolbarBack);
         toolbar.setNavigationOnClickListener(v -> finish());
-    }
-
-    private void loadNotesFromFirestore() {
-        db.collection("users")
-                .document(userId)
-                .collection("notes")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    allNotes.clear();
-                    for (DocumentSnapshot doc : querySnapshot) {
-                        Note note = doc.toObject(Note.class);
-                        if (note != null) {
-                            note.setId(doc.getId()); // Set Firestore document ID
-                            allNotes.add(note);
-                        }
-                    }
-                    filterNotesByDate(getSelectedDateKey());
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load notes: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void filterNotesByDate(String dateKey) {
@@ -159,6 +131,9 @@ public class CalendarActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadNotesFromFirestore();
+        allNotes = NoteStorageHelper.getNotes(this); // reload from storage
+        String selectedDate = new SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+                .format(new Date(calendarView.getDate()));
+        filterNotesByDate(selectedDate); // refresh
     }
 }

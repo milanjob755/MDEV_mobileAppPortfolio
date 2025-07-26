@@ -1,7 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.MyJournalApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+
+    <!-- Popup Menu Overlay Style for Dark Mode -->
+    <style name="ThemeOverlay.MyJournalApp.PopupMenu" parent="ThemeOverlay.Material3">
+        <item name="android:textColor">@color/white</item>
     </style>
+
+    <!-- Base Theme for Dark Mode -->
+    <style name="Base.Theme.MyJournalApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <!-- <item name="popupMenuStyle">@style/PopupMenuStyle</item> -->
+    </style>
+
+    <!-- Actual App Theme -->
+    <style name="Theme.MyJournalApp" parent="Base.Theme.MyJournalApp" />
 </resources>
